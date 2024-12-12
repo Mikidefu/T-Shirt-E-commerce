@@ -1,0 +1,163 @@
+***1. Impostare l'ambiente di sviluppo (Spring Boot + PostgreSQL)***
+
+Ho avviato un progetto con Spring Boot, che è un framework che semplifica la creazione
+di applicazioni web e RESTful.
+Con Spring Boot, si può facilmente gestire il lato server dell'applicazione,
+come la logica di business, l'accesso al database, la gestione della sicurezza, ecc.
+
+Ho configurato anche PostgreSQL, che è un sistema di gestione di database relazionali(RDBMS),
+per memorizzare i dati relativi agli utenti, ai prodotti e ai carrelli.
+
+Ho poi creato una connessione tra Spring Boot e PostgreSQL configurando il file
+application.properties, dove ho specificato l'URL del database,
+le credenziali di accesso, e altre opzioni utili per la connessione al database.
+
+***2. Creazione delle entità (o "classi modello")***
+
+Nel backend, ho iniziato a definire delle entità, che rappresentano i dati che vogliamo
+gestire nel nostro e-commerce.
+Ogni entità è una classe Java che è mappata su una tabella del database.
+Le entità principali che ho creato finora sono:
+
+a. BaseEntity:
+Questa è una classe astratta da cui tutte le altre entità
+erediteranno alcune proprietà comuni, come:
+
+    -ID: un identificatore unico per ogni entità
+    (ad esempio, un identificativo per gli utenti, i prodotti, ecc.).
+
+    -Timestamps: per tenere traccia della data e ora di creazione e ultima modifica
+    di un record.
+
+   public abstract class BaseEntity {
+        private Long id;  // ID univoco per ogni entità
+        private LocalDateTime createdAt;  // Data di creazione
+        private LocalDateTime updatedAt;  // Data dell'ultima modifica
+   }
+
+Ho creato questa classe per evitare di ripetere le stesse proprietà in ogni singola entità. Ogni volta che creerai una nuova entità, essa erediterà automaticamente queste proprietà.
+
+b. User:
+Rappresenta gli utenti che si registrano nel tuo e-commerce. Contiene informazioni come:
+
+    -Username
+    -Email
+    -Password
+
+Questa classe è un'entità che verrà mappata alla tabella users nel database.
+
+    public class User extends BaseEntity {
+        private String username;
+        private String email;
+        private String password;
+    }
+
+c. Product:
+Rappresenta i prodotti (in questo caso, le magliette) nel nostro e-commerce.
+Contiene proprietà come:
+
+    -Name (nome del prodotto)
+    -Description (descrizione del prodotto)
+    -Price (prezzo)
+    -Size (taglia)
+    -Stock (quantità disponibile)
+
+    public class Product extends BaseEntity {
+        private String name;
+        private String description;
+        private Double price;
+        private Size size;
+        private Integer stock;
+    }
+
+    La taglia è gestita con un Enum in modo tale che l'utente possa scegliere solo
+    su un numero limitato di opzioni e solo opzioni esistenti, in questo modo:
+
+    public static enum Size {
+            XS, S, M, L, XL, XXL
+    }
+
+d. CartItem:
+Rappresenta un singolo articolo nel carrello di un utente.
+Ogni CartItem è associato a un prodotto e contiene:
+
+    -Product ID (riferimento al prodotto che l'utente sta acquistando)
+    -Quantity (quantità di quel prodotto nel carrello)
+
+    public class CartItem extends BaseEntity {
+        private Long productId;  // Riferimento al prodotto nel carrello
+        private Integer quantity;  // Quantità del prodotto
+    }
+
+e. Cart:
+Rappresenta il carrello dell'utente, contenente una lista di CartItem.
+Ogni utente ha un carrello, e un carrello può contenere più articoli (prodotti).
+
+
+    public class Cart extends BaseEntity {
+        private List<CartItem> items;  // Lista di articoli nel carrello
+    }
+
+***3. Repository per accedere ai dati***
+Ho creato delle repository per ciascuna entità.
+Una repository è una classe che permette di interagire con il database in modo semplice,
+usando il framework Spring Data JPA.
+Ogni repository estende JpaRepository, che fornisce metodi pronti per fare
+operazioni CRUD (Creare(create), Leggere(Read), Aggiornare(Update) e Cancellare(Delete).
+
+Per esempio, per gestire gli utenti (User), ho creato un UserRepository che permette di:
+
+    -Trovare un utente tramite l'email o lo username.
+    -Aggiungere un nuovo utente.
+    -Aggiornare o cancellare un utente.
+
+    public interface UserRepository extends JpaRepository<User, Long> {
+        Optional<User> findByEmail(String email);
+        Optional<User> findByUsername(String username);
+    }
+
+In modo simile, ho creato repository per Product, CartItem, e Cart.
+
+***4. Servizi (Services)***
+Nel service layer, ho creato delle classi che si occupano della logica di business.
+Queste classi utilizzano le repository per eseguire le operazioni sui dati. Ad esempio:
+
+    -UserService gestisce la registrazione di nuovi utenti,
+    la ricerca di utenti per email o username, ecc.
+
+    -CartService gestisce l'accesso al carrello di un utente,
+    aggiunge articoli al carrello, ecc.
+
+***5. Database (PostgreSQL)***
+
+Ho anche configurato il database PostgreSQL, dove sono memorizzati i dati delle entità.
+Ogni volta che si aggiunge o si aggiorna un utente, un prodotto o un carrello,
+i dati vengono salvati nel database.
+Il database si trova sul server PostgreSQL (locale o remoto),
+e Spring Boot è configurato per connettersi a quel database tramite JDBC.
+
+Ho configurato nel file application.properties i parametri di connessione al database,
+come l' URL del database, username e password,
+e alcune proprietà di Hibernate per la gestione delle entità.
+
+***6. Prossimi passi***
+I prossimi passi riguarderanno:
+
+    -Creare dei controller per esporre le API RESTful.
+    Questi controller permetteranno agli utenti di interagire con il sistema tramite
+    richieste HTTP (ad esempio, per registrarsi, accedere al carrello,
+    acquistare prodotti, ecc.).
+
+    -Gestire la sicurezza: ad esempio, cifrare le password degli utenti,
+    implementare un sistema di login sicuro, ecc.
+
+    -Creare il frontend per l'interfaccia utente, dove gli utenti possano interagire
+    con il sito.
+
+In sintesi:
+
+Ho creato la struttura base per il backend dell' e-commerce,
+comprese le entità principali (come utenti, prodotti, carrelli) e le repository per
+interagire con il database.
+Ora bisogna sviluppare la logica di business e le API RESTful per gestire le operazioni
+del sito.
